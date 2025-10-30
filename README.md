@@ -1,11 +1,12 @@
 # IPC Areas GeoJSON Download and Organization
 
-This script downloads IPC (Integrated Food Security Phase Classification) area data for countries and converts them to TopoJSON format for efficient web serving.
+This script downloads IPC (Integrated Food Security Phase Classification) area data for countries, folds in newly published areas across multiple years, and converts the merged result to TopoJSON for efficient web serving.
 
 ## Features
 
 - Downloads IPC area data from the official IPC API
-- Tries multiple years (2025, 2024, 2023, 2022) to find available data
+- Tries multiple years (2025 → 2020) to find available data
+- Merges newly discovered areas into existing datasets so historic files stay complete
 - Filters for polygon geometries only (ignoring point data)
 - Removes duplicate geometries
 - Converts GeoJSON to TopoJSON for smaller file sizes
@@ -61,20 +62,6 @@ export CDN_RELEASE_TAG="v1.0.0"
 
 If not provided, the script defaults to `main`.
 
-### Optional: Force Refresh
-
-By default, existing TopoJSON files are reused to avoid unnecessary API calls. To force fresh downloads, set:
-
-**PowerShell**
-```powershell
-$env:IPC_FORCE_DOWNLOAD = "true"
-```
-
-**Bash**
-```bash
-export IPC_FORCE_DOWNLOAD="true"
-```
-
 ## Usage
 
 Run the script:
@@ -85,17 +72,17 @@ python download_ipc_areas.py
 The script will:
 1. Read country data from `countries.csv`
 2. For each country, attempt to download IPC area data
-3. Try years 2025, 2024, 2023, and 2022 until data is found
-4. Filter and process the data to retain only:
+3. Try every year from 2025 down to 2020 and collect any available data
+4. Merge newly retrieved features with the existing TopoJSON (if present) so that new administrative areas are appended instead of overwriting the dataset
+5. Filter and process the data to retain only:
    - Area title (name)
    - Country ISO2 code
    - Country ISO3 code (from CSV)
    - Year
    - Polygon coordinates only
-5. Convert to TopoJSON format
-6. Save to `data/{ISO3_CODE}/{ISO3_CODE}_{YEAR}_areas.topojson`
-7. Update `data/index.json` with metadata for easy file discovery
-8. Reuse cached files on subsequent runs unless force refresh is enabled
+6. Convert the merged GeoJSON to TopoJSON format
+7. Save to `data/{ISO3_CODE}/{ISO3_CODE}_{LATEST_YEAR}_areas.topojson` (the most recent year that produced data during the run)
+8. Update `data/index.json` with metadata for easy file discovery
 
 ## Output Structure
 
