@@ -11,20 +11,81 @@ import sys
 import csv
 import json
 import requests
+import subprocess
 import time
+from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 import topojson as tp
-from shapely.geometry import shape
 
 # Configuration
 API_BASE_URL = "https://api.ipcinfo.org/areas"
 YEARS_TO_TRY = [2025, 2024, 2023, 2022]
-IPC_KEY = os.getenv('IPC_KEY')
+FORCE_DOWNLOAD = os.getenv("IPC_FORCE_DOWNLOAD", "false").lower() in {"1", "true", "yes"}
+
+
+def resolve_release_tag() -> str:
+    """Determine the CDN release tag.
+
+    Priority order:
+      1. CDN_RELEASE_TAG environment variable
+      2. Current Git tag (git describe --tags --abbrev=0)
+      3. Current Git branch
+      4. Short commit hash
+      5. Fallback to 'main'
+    """
+
+    env_tag = os.getenv("CDN_RELEASE_TAG")
+    if env_tag:
+        return env_tag
+
+    git_cmds = [
+        ["git", "describe", "--tags", "--abbrev=0"],
+        ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+        ["git", "rev-parse", "--short", "HEAD"],
+    ]
+
+    for cmd in git_cmds:
+        try:
+            result = subprocess.check_output(cmd, stderr=subprocess.DEVNULL, cwd=Path(__file__).parent)
+            tag = result.decode().strip()
+            if tag and tag != "HEAD":
+                return tag
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            continue
+
+    return "main"
+
+
+CDN_RELEASE_TAG = resolve_release_tag()
+
+
+def resolve_ipc_key() -> Optional[str]:
+    """Resolve IPC API key from environment or user environment variables."""
+    key = os.getenv("IPC_KEY")
+    if key:
+        return key
+
+    if os.name == "nt":
+        try:
+            import winreg  # lazy import to keep non-Windows platforms clean
+
+            with winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Environment") as reg_key:
+                value, _ = winreg.QueryValueEx(reg_key, "IPC_KEY")
+                if value:
+                    return value
+        except FileNotFoundError:
+            # No user environment variables defined
+            pass
+        except OSError as exc:
+            print(f"Warning: unable to read user environment variables: {exc}")
+
+    return None
 
 class IPCAreaDownloader:
     def __init__(self):
-        if not IPC_KEY:
+        self.ipc_key = resolve_ipc_key()
+        if not self.ipc_key:
             raise ValueError("IPC_KEY environment variable is required")
         
         self.session = requests.Session()
@@ -35,19 +96,54 @@ class IPCAreaDownloader:
         # Create data directory
         self.data_dir = Path("data")
         self.data_dir.mkdir(exist_ok=True)
+        self.index_entries: List[Dict[str, Any]] = []
+        self.cdn_release_tag = CDN_RELEASE_TAG
+        self.force_download = FORCE_DOWNLOAD
+        self.existing_index_map = self.load_existing_index()
+
+    def load_existing_index(self) -> Dict[str, Dict[str, Any]]:
+        """Load existing index entries if the index file is present."""
+        index_path = self.data_dir / "index.json"
+        if not index_path.exists():
+            return {}
+
+        try:
+            with open(index_path, 'r', encoding='utf-8') as fh:
+                payload = json.load(fh)
+            items = payload.get('items', []) if isinstance(payload, dict) else []
+            return {
+                item.get('relative_path'): item
+                for item in items
+                if isinstance(item, dict) and item.get('relative_path')
+            }
+        except Exception as exc:
+            print(f"Warning: could not read existing index: {exc}")
+            return {}
         
     def load_countries(self) -> Dict[str, Dict]:
         """Load country data from CSV file."""
         countries = {}
         
         try:
-            with open('countries.csv', 'r', encoding='utf-8') as file:
+            with open('countries.csv', 'r', encoding='utf-8-sig', newline='') as file:
                 reader = csv.DictReader(file)
+                if reader.fieldnames:
+                    reader.fieldnames = [field.strip() for field in reader.fieldnames]
+
                 for row in reader:
-                    alpha_2 = row['Alpha_2_Code'].strip()
-                    alpha_3 = row['Alpha_3_Code'].strip()
+                    if not row:
+                        continue
+
+                    alpha_2 = (row.get('Alpha_2_Code') or '').strip()
+                    alpha_3 = (row.get('Alpha_3_Code') or '').strip()
+                    name = (row.get('English_Short_Name') or '').strip()
+
+                    if not alpha_2 or not alpha_3:
+                        print("    Skipping row with missing ISO codes")
+                        continue
+
                     countries[alpha_2] = {
-                        'name': row['English_Short_Name'].strip(),
+                        'name': name or alpha_2,
                         'iso2': alpha_2,
                         'iso3': alpha_3
                     }
@@ -60,14 +156,14 @@ class IPCAreaDownloader:
             
         return countries
     
-    def download_areas(self, country_code: str, year: int) -> Optional[Dict]:
+    def download_areas(self, country_code: str, year: int) -> Optional[Dict[str, Any]]:
         """Download IPC areas data for a specific country and year."""
         params = {
-            'format': 'json',
+            'format': 'geojson',
             'country': country_code,
             'year': year,
             'type': 'A',
-            'key': IPC_KEY
+            'key': self.ipc_key
         }
         
         try:
@@ -76,13 +172,15 @@ class IPCAreaDownloader:
             
             if response.status_code == 200:
                 data = response.json()
-                
-                # Check if we have valid data
-                if data and isinstance(data, list) and len(data) > 0:
+                if (
+                    data
+                    and isinstance(data, dict)
+                    and isinstance(data.get('features'), list)
+                    and data['features']
+                ):
                     return data
-                else:
-                    print(f"    No data available for {country_code} in {year}")
-                    return None
+                print(f"    No data available for {country_code} in {year}")
+                return None
             else:
                 print(f"    HTTP {response.status_code} for {country_code} - {year}")
                 return None
@@ -94,46 +192,45 @@ class IPCAreaDownloader:
             print(f"    Invalid JSON response for {country_code} - {year}: {e}")
             return None
     
-    def filter_and_process_areas(self, areas_data: List[Dict], country_info: Dict, year: int) -> Dict:
+    def filter_and_process_areas(self, areas_data: Dict[str, Any], country_info: Dict[str, str], year: int) -> Optional[Dict[str, Any]]:
         """Filter and process areas data to retain only required fields."""
         features = []
         seen_geometries = set()
         
-        for area in areas_data:
+        for feature in areas_data.get('features', []):
             try:
-                # Skip if no geometry or not a polygon
-                if 'geometry' not in area or not area['geometry']:
+                geometry = feature.get('geometry')
+                if not geometry:
                     continue
-                    
-                geometry = area['geometry']
-                if geometry.get('type') != 'Polygon' and geometry.get('type') != 'MultiPolygon':
+
+                geometry_type = geometry.get('type')
+                if geometry_type not in {'Polygon', 'MultiPolygon'}:
+                    continue
+
+                coordinates = geometry.get('coordinates')
+                if not coordinates:
                     continue
                 
-                # Create a hash of the geometry to identify duplicates
                 geometry_str = json.dumps(geometry, sort_keys=True)
-                geometry_hash = hash(geometry_str)
                 
-                if geometry_hash in seen_geometries:
+                if geometry_str in seen_geometries:
                     continue
-                    
-                seen_geometries.add(geometry_hash)
                 
-                # Extract required properties
+                seen_geometries.add(geometry_str)
+                
+                source_props = feature.get('properties') or {}
                 properties = {
-                    'title': area.get('title', ''),
-                    'country': country_info['iso2'],
+                    'title': source_props.get('title') or '',
+                    'country': source_props.get('country') or country_info['iso2'],
                     'iso3': country_info['iso3'],
-                    'year': year
+                    'year': source_props.get('year') or year
                 }
                 
-                # Create GeoJSON feature
-                feature = {
+                features.append({
                     'type': 'Feature',
                     'geometry': geometry,
                     'properties': properties
-                }
-                
-                features.append(feature)
+                })
                 
             except Exception as e:
                 print(f"    Error processing area: {e}")
@@ -149,7 +246,7 @@ class IPCAreaDownloader:
         
         return geojson
     
-    def convert_to_topojson(self, geojson: Dict) -> Dict:
+    def convert_to_topojson(self, geojson: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Convert GeoJSON to TopoJSON format."""
         try:
             # Use topojson library to convert
@@ -159,7 +256,7 @@ class IPCAreaDownloader:
             print(f"    Error converting to TopoJSON: {e}")
             return None
     
-    def save_topojson(self, topojson_data: Dict, country_iso3: str, year: int):
+    def save_topojson(self, topojson_data: Dict[str, Any], country_iso3: str, year: int) -> Optional[Path]:
         """Save TopoJSON data to file."""
         country_dir = self.data_dir / country_iso3
         country_dir.mkdir(exist_ok=True)
@@ -172,18 +269,92 @@ class IPCAreaDownloader:
                 json.dump(topojson_data, f, separators=(',', ':'))
             
             print(f"    Saved: {filepath}")
-            return True
+            return filepath
         except Exception as e:
             print(f"    Error saving {filepath}: {e}")
-            return False
+            return None
+
+    def add_index_entry(
+        self,
+        country_info: Dict[str, str],
+        year: int,
+        filepath: Path,
+        feature_count: Optional[int],
+        updated_at: Optional[str] = None
+    ) -> None:
+        """Add an entry to the index for future discovery."""
+        relative_path = filepath.as_posix()
+        file_name = filepath.name
+        cdn_url = (
+            f"https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@{self.cdn_release_tag}/"
+            f"{relative_path}"
+        )
+
+        if feature_count is None:
+            feature_count = self.infer_feature_count(filepath)
+
+        if updated_at is None:
+            updated_at = datetime.utcnow().isoformat(timespec='seconds') + 'Z'
+
+        entry = {
+            "country": country_info.get('name', country_info['iso2']),
+            "iso2": country_info['iso2'],
+            "iso3": country_info['iso3'],
+            "year": year,
+            "relative_path": relative_path,
+            "file_name": file_name,
+            "feature_count": feature_count,
+            "cdn_url": cdn_url,
+            "updated_at": updated_at
+        }
+
+        self.index_entries.append(entry)
+
+    @staticmethod
+    def infer_feature_count(filepath: Path) -> Optional[int]:
+        """Infer feature count from an existing TopoJSON payload."""
+        try:
+            with open(filepath, 'r', encoding='utf-8') as fh:
+                data = json.load(fh)
+            objects = data.get('objects') if isinstance(data, dict) else None
+            if not isinstance(objects, dict) or not objects:
+                return None
+
+            first_object = next(iter(objects.values()), None)
+            geometries = first_object.get('geometries') if isinstance(first_object, dict) else None
+            if isinstance(geometries, list):
+                return len(geometries)
+        except Exception:
+            return None
+
+        return None
     
-    def process_country(self, country_code: str, country_info: Dict):
+    def process_country(self, country_code: str, country_info: Dict[str, str]) -> bool:
         """Process a single country - download and save data."""
         print(f"\nProcessing {country_info['name']} ({country_code})...")
         
         success = False
         
         for year in YEARS_TO_TRY:
+            expected_path = self.data_dir / country_info['iso3'] / f"{country_info['iso3']}_{year}_areas.topojson"
+
+            if expected_path.exists() and not self.force_download:
+                relative_path = expected_path.as_posix()
+                cached_entry = self.existing_index_map.get(relative_path)
+                cached_feature_count = cached_entry.get('feature_count') if cached_entry else None
+                cached_updated_at = cached_entry.get('updated_at') if cached_entry else None
+
+                self.add_index_entry(
+                    country_info,
+                    year,
+                    expected_path,
+                    cached_feature_count,
+                    cached_updated_at
+                )
+                print(f"    Using cached dataset for year {year}")
+                success = True
+                break
+
             # Download areas data
             areas_data = self.download_areas(country_code, year)
             
@@ -197,8 +368,11 @@ class IPCAreaDownloader:
                     
                     if topojson_data:
                         # Save the data
-                        if self.save_topojson(topojson_data, country_info['iso3'], year):
-                            print(f"    Successfully processed {len(geojson['features'])} areas for year {year}")
+                        saved_path = self.save_topojson(topojson_data, country_info['iso3'], year)
+                        if saved_path:
+                            feature_count = len(geojson['features'])
+                            self.add_index_entry(country_info, year, saved_path, feature_count)
+                            print(f"    Successfully processed {feature_count} areas for year {year}")
                             success = True
                             break
                     else:
@@ -211,6 +385,29 @@ class IPCAreaDownloader:
         
         if not success:
             print(f"    No data found for {country_info['name']} in any year")
+        
+        return success
+
+    def write_index_file(self) -> None:
+        """Write or update the TopoJSON index file."""
+        index_path = self.data_dir / "index.json"
+
+        index_payload = {
+            "generated_at": datetime.utcnow().isoformat(timespec='seconds') + 'Z',
+            "cdn_release_tag": self.cdn_release_tag,
+            "total_files": len(self.index_entries),
+            "items": sorted(
+                self.index_entries,
+                key=lambda entry: (entry['iso3'], entry['year'], entry['file_name'])
+            )
+        }
+
+        try:
+            with open(index_path, 'w', encoding='utf-8') as fh:
+                json.dump(index_payload, fh, indent=2)
+            print(f"Index updated: {index_path}")
+        except Exception as exc:
+            print(f"Error writing index file: {exc}")
     
     def run(self):
         """Main execution method."""
@@ -228,8 +425,10 @@ class IPCAreaDownloader:
         
         for country_code, country_info in countries.items():
             try:
-                self.process_country(country_code, country_info)
-                successful += 1
+                if self.process_country(country_code, country_info):
+                    successful += 1
+                else:
+                    failed += 1
             except Exception as e:
                 print(f"Error processing {country_info['name']}: {e}")
                 failed += 1
@@ -237,6 +436,8 @@ class IPCAreaDownloader:
             # Rate limiting
             time.sleep(1)
         
+        self.write_index_file()
+
         print(f"\n" + "=" * 50)
         print(f"Processing complete!")
         print(f"Successful: {successful}")

@@ -43,6 +43,37 @@ set IPC_KEY=your_api_key_here
 ```bash
 export IPC_KEY="your_api_key_here"
 ```
+The script first checks the current process environment for `IPC_KEY`. On Windows it also falls back to your persisted *User Environment Variables*, so keys added through *System Properties → Environment Variables* are picked up automatically on the next run.
+
+### Optional: CDN Release Tag
+
+If you plan to host the generated files through jsDelivr, the script automatically resolves a tag using this order: `CDN_RELEASE_TAG` environment variable → current Git tag → current branch → short commit hash → `main`. Set the variable manually when you need to override what Git reports:
+
+**PowerShell**
+```powershell
+$env:CDN_RELEASE_TAG = "v1.0.0"
+```
+
+**Bash**
+```bash
+export CDN_RELEASE_TAG="v1.0.0"
+```
+
+If not provided, the script defaults to `main`.
+
+### Optional: Force Refresh
+
+By default, existing TopoJSON files are reused to avoid unnecessary API calls. To force fresh downloads, set:
+
+**PowerShell**
+```powershell
+$env:IPC_FORCE_DOWNLOAD = "true"
+```
+
+**Bash**
+```bash
+export IPC_FORCE_DOWNLOAD="true"
+```
 
 ## Usage
 
@@ -63,6 +94,8 @@ The script will:
    - Polygon coordinates only
 5. Convert to TopoJSON format
 6. Save to `data/{ISO3_CODE}/{ISO3_CODE}_{YEAR}_areas.topojson`
+7. Update `data/index.json` with metadata for easy file discovery
+8. Reuse cached files on subsequent runs unless force refresh is enabled
 
 ## Output Structure
 
@@ -77,13 +110,32 @@ data/
 └── ...
 ```
 
-## Data Fields
+## Output Metadata (`data/index.json`)
 
-Each TopoJSON file contains features with the following properties:
-- `title`: Name of the IPC area
-- `country`: ISO2 country code
-- `iso3`: ISO3 country code
-- `year`: Year of the IPC data
+The script maintains an index file with entries such as:
+
+```json
+{
+   "generated_at": "2025-10-30T12:34:56Z",
+   "cdn_release_tag": "v1.0.0",
+   "total_files": 42,
+   "items": [
+      {
+         "country": "Uganda",
+         "iso2": "UG",
+         "iso3": "UGA",
+         "year": 2024,
+         "relative_path": "data/UGA/UGA_2024_areas.topojson",
+         "file_name": "UGA_2024_areas.topojson",
+         "feature_count": 21,
+         "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/UGA/UGA_2024_areas.topojson",
+         "updated_at": "2025-10-30T12:34:56Z"
+      }
+   ]
+}
+```
+
+This makes it simple to discover available datasets programmatically and link directly to cached CDN locations.
 
 ## Error Handling
 
@@ -109,11 +161,11 @@ The script includes built-in rate limiting (1-second delays between countries, 0
 
 The script uses the IPC Areas API:
 ```
-https://api.ipcinfo.org/areas?format=json&country={ISO2}&year={YEAR}&type=A&key={API_KEY}
+https://api.ipcinfo.org/areas?format=geojson&country={ISO2}&year={YEAR}&type=A&key={API_KEY}
 ```
 
 Parameters:
-- `format`: json
+- `format`: geojson
 - `country`: ISO2 country code
 - `year`: Year (2022-2025)
 - `type`: A (for areas)
