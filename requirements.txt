@@ -1,0 +1,3 @@
+requests==2.31.0
+topojson==1.7
+shapely==2.0.2
