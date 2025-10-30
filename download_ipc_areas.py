@@ -6,6 +6,8 @@ This script downloads IPC area data for countries from the IPC API,
 converts them to TopoJSON format, and organizes them by country ISO3 codes.
 """
 
+import copy
+import hashlib
 import os
 import sys
 import csv
@@ -20,8 +22,7 @@ import topojson as tp
 
 # Configuration
 API_BASE_URL = "https://api.ipcinfo.org/areas"
-YEARS_TO_TRY = [2025, 2024, 2023, 2022]
-FORCE_DOWNLOAD = os.getenv("IPC_FORCE_DOWNLOAD", "false").lower() in {"1", "true", "yes"}
+YEARS_TO_TRY = list(range(2025, 2019, -1))
 
 
 def resolve_release_tag() -> str:
@@ -98,28 +99,30 @@ class IPCAreaDownloader:
         self.data_dir.mkdir(exist_ok=True)
         self.index_entries: List[Dict[str, Any]] = []
         self.cdn_release_tag = CDN_RELEASE_TAG
-        self.force_download = FORCE_DOWNLOAD
-        self.existing_index_map = self.load_existing_index()
 
-    def load_existing_index(self) -> Dict[str, Dict[str, Any]]:
-        """Load existing index entries if the index file is present."""
-        index_path = self.data_dir / "index.json"
-        if not index_path.exists():
-            return {}
+    @staticmethod
+    def normalize_title(title: Optional[str]) -> str:
+        if not title:
+            return ""
+        return " ".join(title.split()).strip().lower()
 
-        try:
-            with open(index_path, 'r', encoding='utf-8') as fh:
-                payload = json.load(fh)
-            items = payload.get('items', []) if isinstance(payload, dict) else []
-            return {
-                item.get('relative_path'): item
-                for item in items
-                if isinstance(item, dict) and item.get('relative_path')
-            }
-        except Exception as exc:
-            print(f"Warning: could not read existing index: {exc}")
-            return {}
-        
+    @staticmethod
+    def feature_key(feature: Dict[str, Any]) -> str:
+        props = feature.get('properties') or {}
+        title_key = IPCAreaDownloader.normalize_title(props.get('title'))
+        if title_key:
+            return f"title::{title_key}"
+
+        geometry = feature.get('geometry')
+        if geometry:
+            geometry_str = json.dumps(geometry, sort_keys=True)
+            digest = hashlib.sha1(geometry_str.encode('utf-8')).hexdigest()
+            return f"geometry::{digest}"
+
+        fallback_str = json.dumps(feature, sort_keys=True)
+        digest = hashlib.sha1(fallback_str.encode('utf-8')).hexdigest()
+        return f"feature::{digest}"
+
     def load_countries(self) -> Dict[str, Dict]:
         """Load country data from CSV file."""
         countries = {}
@@ -155,6 +158,62 @@ class IPCAreaDownloader:
             sys.exit(1)
             
         return countries
+
+    def load_existing_features(self, filepath: Path) -> List[Dict[str, Any]]:
+        try:
+            with open(filepath, 'r', encoding='utf-8') as fh:
+                topo_payload = json.load(fh)
+            topology = tp.Topology(topo_payload, topology=True, prequantize=False)
+            geojson_payload = json.loads(topology.to_geojson())
+            features = geojson_payload.get('features', []) if isinstance(geojson_payload, dict) else []
+            return [feature for feature in features if isinstance(feature, dict)]
+        except Exception as exc:
+            print(f"    Warning: unable to read existing dataset {filepath}: {exc}")
+            return []
+
+    def merge_features(self,
+                       aggregate: Dict[str, Dict[str, Any]],
+                       features: List[Dict[str, Any]],
+                       *,
+                       priority: int,
+                       source_year: Optional[int],
+                       source_label: str) -> Dict[str, int]:
+        stats = {"added": 0, "updated": 0, "skipped": 0}
+
+        for feature in features:
+            feature_copy = copy.deepcopy(feature)
+            props = feature_copy.get('properties') or {}
+            key = self.feature_key(feature_copy)
+            candidate = {
+                "feature": feature_copy,
+                "priority": priority,
+                "source_year": props.get('year') if props.get('year') is not None else source_year,
+                "source_label": source_label,
+                "title": props.get('title')
+            }
+
+            existing = aggregate.get(key)
+            if existing is None:
+                aggregate[key] = candidate
+                stats["added"] += 1
+                continue
+
+            replace = False
+            if priority > existing.get('priority', -1):
+                replace = True
+            elif priority == existing.get('priority', -1):
+                candidate_year = candidate.get('source_year') or 0
+                existing_year = existing.get('source_year') or 0
+                if candidate_year >= existing_year:
+                    replace = True
+
+            if replace:
+                aggregate[key] = candidate
+                stats["updated"] += 1
+            else:
+                stats["skipped"] += 1
+
+        return stats
     
     def download_areas(self, country_code: str, year: int) -> Optional[Dict[str, Any]]:
         """Download IPC areas data for a specific country and year."""
@@ -330,63 +389,86 @@ class IPCAreaDownloader:
         return None
     
     def process_country(self, country_code: str, country_info: Dict[str, str]) -> bool:
-        """Process a single country - download and save data."""
+        """Process a single country - download, merge, and save data."""
         print(f"\nProcessing {country_info['name']} ({country_code})...")
-        
-        success = False
-        
+
+        aggregated: Dict[str, Dict[str, Any]] = {}
+        fallback_year: Optional[int] = None
+        download_year: Optional[int] = None
+
         for year in YEARS_TO_TRY:
             expected_path = self.data_dir / country_info['iso3'] / f"{country_info['iso3']}_{year}_areas.topojson"
 
-            if expected_path.exists() and not self.force_download:
-                relative_path = expected_path.as_posix()
-                cached_entry = self.existing_index_map.get(relative_path)
-                cached_feature_count = cached_entry.get('feature_count') if cached_entry else None
-                cached_updated_at = cached_entry.get('updated_at') if cached_entry else None
+            if expected_path.exists():
+                if fallback_year is None:
+                    fallback_year = year
+                existing_features = self.load_existing_features(expected_path)
+                if existing_features:
+                    stats = self.merge_features(
+                        aggregated,
+                        existing_features,
+                        priority=0,
+                        source_year=year,
+                        source_label=f"existing:{year}"
+                    )
+                    if stats["added"] or stats["updated"]:
+                        print(f"    Existing {year} dataset contributed {stats['added']} new and {stats['updated']} updated features")
 
-                self.add_index_entry(
-                    country_info,
-                    year,
-                    expected_path,
-                    cached_feature_count,
-                    cached_updated_at
-                )
-                print(f"    Using cached dataset for year {year}")
-                success = True
-                break
-
-            # Download areas data
             areas_data = self.download_areas(country_code, year)
-            
+
             if areas_data:
-                # Process and filter the data
                 geojson = self.filter_and_process_areas(areas_data, country_info, year)
-                
+
                 if geojson and geojson['features']:
-                    # Convert to TopoJSON
-                    topojson_data = self.convert_to_topojson(geojson)
-                    
-                    if topojson_data:
-                        # Save the data
-                        saved_path = self.save_topojson(topojson_data, country_info['iso3'], year)
-                        if saved_path:
-                            feature_count = len(geojson['features'])
-                            self.add_index_entry(country_info, year, saved_path, feature_count)
-                            print(f"    Successfully processed {feature_count} areas for year {year}")
-                            success = True
-                            break
-                    else:
-                        print(f"    Failed to convert to TopoJSON for year {year}")
+                    if download_year is None:
+                        download_year = year
+                    stats = self.merge_features(
+                        aggregated,
+                        geojson['features'],
+                        priority=10,
+                        source_year=year,
+                        source_label=f"download:{year}"
+                    )
+                    print(
+                        f"    Year {year}: {len(geojson['features'])} features retrieved "
+                        f"({stats['added']} new, {stats['updated']} updated)"
+                    )
                 else:
                     print(f"    No valid polygon features found for year {year}")
-            
-            # Small delay between requests
+
             time.sleep(0.5)
-        
-        if not success:
+
+        if not aggregated:
             print(f"    No data found for {country_info['name']} in any year")
-        
-        return success
+            return False
+
+        target_year = download_year if download_year is not None else fallback_year
+        if target_year is None:
+            print(f"    Unable to determine target year for {country_info['name']}")
+            return False
+
+        sorted_entries = sorted(aggregated.items(), key=lambda item: item[0])
+        final_features = [entry['feature'] for _, entry in sorted_entries]
+        final_geojson = {
+            'type': 'FeatureCollection',
+            'features': final_features
+        }
+
+        topojson_data = self.convert_to_topojson(final_geojson)
+        if not topojson_data:
+            print(f"    Failed to convert merged features to TopoJSON for {country_info['name']}")
+            return False
+
+        saved_path = self.save_topojson(topojson_data, country_info['iso3'], target_year)
+        if not saved_path:
+            print(f"    Failed to save merged dataset for {country_info['name']}")
+            return False
+
+        feature_count = len(final_features)
+        self.add_index_entry(country_info, target_year, saved_path, feature_count)
+        print(f"    Merged dataset saved for year {target_year} with {feature_count} features")
+
+        return True
 
     def write_index_file(self) -> None:
         """Write or update the TopoJSON index file."""

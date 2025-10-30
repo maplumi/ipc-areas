@@ -1,7 +1,7 @@
 {
-  "generated_at": "2025-10-30T10:48:34Z",
+  "generated_at": "2025-10-30T19:56:31Z",
   "cdn_release_tag": "v1.0.0",
-  "total_files": 28,
+  "total_files": 33,
   "items": [
     {
       "country": "Afghanistan",
@@ -10,9 +10,20 @@
       "year": 2025,
       "relative_path": "data/AFG/AFG_2025_areas.topojson",
       "file_name": "AFG_2025_areas.topojson",
-      "feature_count": 34,
+      "feature_count": 45,
       "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/AFG/AFG_2025_areas.topojson",
-      "updated_at": "2025-10-30T10:27:03Z"
+      "updated_at": "2025-10-30T19:22:06Z"
+    },
+    {
+      "country": "Angola",
+      "iso2": "AO",
+      "iso3": "AGO",
+      "year": 2021,
+      "relative_path": "data/AGO/AGO_2021_areas.topojson",
+      "file_name": "AGO_2021_areas.topojson",
+      "feature_count": 17,
+      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/AGO/AGO_2021_areas.topojson",
+      "updated_at": "2025-10-30T19:09:59Z"
     },
     {
       "country": "Burundi",
@@ -21,9 +32,9 @@
       "year": 2025,
       "relative_path": "data/BDI/BDI_2025_areas.topojson",
       "file_name": "BDI_2025_areas.topojson",
-      "feature_count": 8,
+      "feature_count": 15,
       "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/BDI/BDI_2025_areas.topojson",
-      "updated_at": "2025-10-30T10:22:47Z"
+      "updated_at": "2025-10-30T19:10:45Z"
     },
     {
       "country": "Bangladesh",
@@ -32,9 +43,9 @@
       "year": 2025,
       "relative_path": "data/BGD/BGD_2025_areas.topojson",
       "file_name": "BGD_2025_areas.topojson",
-      "feature_count": 6,
+      "feature_count": 22,
       "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/BGD/BGD_2025_areas.topojson",
-      "updated_at": "2025-10-30T10:27:25Z"
+      "updated_at": "2025-10-30T19:22:48Z"
     },
     {
       "country": "Central African Republic (the)",
@@ -43,9 +54,9 @@
       "year": 2023,
       "relative_path": "data/CAF/CAF_2023_areas.topojson",
       "file_name": "CAF_2023_areas.topojson",
-      "feature_count": 79,
+      "feature_count": 80,
       "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/CAF/CAF_2023_areas.topojson",
-      "updated_at": "2025-10-30T10:26:23Z"
+      "updated_at": "2025-10-30T19:19:51Z"
     },
     {
       "country": "Congo (the Democratic Republic of the)",
@@ -54,9 +65,9 @@
       "year": 2025,
       "relative_path": "data/COD/COD_2025_areas.topojson",
       "file_name": "COD_2025_areas.topojson",
-      "feature_count": 188,
+      "feature_count": 189,
       "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/COD/COD_2025_areas.topojson",
-      "updated_at": "2025-10-30T10:26:31Z"
+      "updated_at": "2025-10-30T19:20:22Z"
     },
     {
       "country": "Djibouti",
@@ -67,7 +78,7 @@
       "file_name": "DJI_2025_areas.topojson",
       "feature_count": 5,
       "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/DJI/DJI_2025_areas.topojson",
-      "updated_at": "2025-10-30T10:23:07Z"
+      "updated_at": "2025-10-30T19:11:27Z"
     },
     {
       "country": "Dominican Republic (the)",
@@ -76,9 +87,9 @@
       "year": 2024,
       "relative_path": "data/DOM/DOM_2024_areas.topojson",
       "file_name": "DOM_2024_areas.topojson",
-      "feature_count": 28,
+      "feature_count": 35,
       "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/DOM/DOM_2024_areas.topojson",
-      "updated_at": "2025-10-30T10:42:20Z"
+      "updated_at": "2025-10-30T19:47:18Z"
     },
     {
       "country": "Ecuador",
@@ -89,7 +100,18 @@
       "file_name": "ECU_2025_areas.topojson",
       "feature_count": 24,
       "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/ECU/ECU_2025_areas.topojson",
-      "updated_at": "2025-10-30T10:39:13Z"
+      "updated_at": "2025-10-30T19:42:40Z"
+    },
+    {
+      "country": "Ethiopia",
+      "iso2": "ET",
+      "iso3": "ETH",
+      "year": 2021,
+      "relative_path": "data/ETH/ETH_2021_areas.topojson",
+      "file_name": "ETH_2021_areas.topojson",
+      "feature_count": 71,
+      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/ETH/ETH_2021_areas.topojson",
+      "updated_at": "2025-10-30T19:12:28Z"
     },
     {
       "country": "Guatemala",
@@ -98,9 +120,9 @@
       "year": 2025,
       "relative_path": "data/GTM/GTM_2025_areas.topojson",
       "file_name": "GTM_2025_areas.topojson",
-      "feature_count": 22,
+      "feature_count": 29,
       "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/GTM/GTM_2025_areas.topojson",
-      "updated_at": "2025-10-30T10:36:17Z"
+      "updated_at": "2025-10-30T19:37:43Z"
     },
     {
       "country": "Honduras",
@@ -109,9 +131,9 @@
       "year": 2025,
       "relative_path": "data/HND/HND_2025_areas.topojson",
       "file_name": "HND_2025_areas.topojson",
-      "feature_count": 18,
+      "feature_count": 19,
       "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/HND/HND_2025_areas.topojson",
-      "updated_at": "2025-10-30T10:36:20Z"
+      "updated_at": "2025-10-30T19:38:22Z"
     },
     {
       "country": "Haiti",
@@ -120,9 +142,9 @@
       "year": 2025,
       "relative_path": "data/HTI/HTI_2025_areas.topojson",
       "file_name": "HTI_2025_areas.topojson",
-      "feature_count": 34,
+      "feature_count": 51,
       "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/HTI/HTI_2025_areas.topojson",
-      "updated_at": "2025-10-30T10:36:18Z"
+      "updated_at": "2025-10-30T19:38:00Z"
     },
     {
       "country": "Kenya",
@@ -131,9 +153,9 @@
       "year": 2025,
       "relative_path": "data/KEN/KEN_2025_areas.topojson",
       "file_name": "KEN_2025_areas.topojson",
-      "feature_count": 23,
+      "feature_count": 38,
       "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/KEN/KEN_2025_areas.topojson",
-      "updated_at": "2025-10-30T10:24:04Z"
+      "updated_at": "2025-10-30T19:13:27Z"
     },
     {
       "country": "Lebanon",
@@ -142,9 +164,9 @@
       "year": 2025,
       "relative_path": "data/LBN/LBN_2025_areas.topojson",
       "file_name": "LBN_2025_areas.topojson",
-      "feature_count": 21,
+      "feature_count": 31,
       "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/LBN/LBN_2025_areas.topojson",
-      "updated_at": "2025-10-30T10:28:57Z"
+      "updated_at": "2025-10-30T19:25:37Z"
     },
     {
       "country": "Lesotho",
@@ -155,7 +177,7 @@
       "file_name": "LSO_2025_areas.topojson",
       "feature_count": 10,
       "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/LSO/LSO_2025_areas.topojson",
-      "updated_at": "2025-10-30T10:24:05Z"
+      "updated_at": "2025-10-30T19:13:38Z"
     },
     {
       "country": "Madagascar",
@@ -164,9 +186,9 @@
       "year": 2025,
       "relative_path": "data/MDG/MDG_2025_areas.topojson",
       "file_name": "MDG_2025_areas.topojson",
-      "feature_count": 32,
+      "feature_count": 38,
       "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/MDG/MDG_2025_areas.topojson",
-      "updated_at": "2025-10-30T10:24:20Z"
+      "updated_at": "2025-10-30T19:14:19Z"
     },
     {
       "country": "Mozambique",
@@ -175,9 +197,9 @@
       "year": 2024,
       "relative_path": "data/MOZ/MOZ_2024_areas.topojson",
       "file_name": "MOZ_2024_areas.topojson",
-      "feature_count": 105,
+      "feature_count": 189,
       "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/MOZ/MOZ_2024_areas.topojson",
-      "updated_at": "2025-10-30T10:24:53Z"
+      "updated_at": "2025-10-30T19:16:18Z"
     },
     {
       "country": "Malawi",
@@ -188,7 +210,7 @@
       "file_name": "MWI_2025_areas.topojson",
       "feature_count": 32,
       "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/MWI/MWI_2025_areas.topojson",
-      "updated_at": "2025-10-30T10:24:21Z"
+      "updated_at": "2025-10-30T19:14:31Z"
     },
     {
       "country": "Pakistan",
@@ -197,9 +219,9 @@
       "year": 2024,
       "relative_path": "data/PAK/PAK_2024_areas.topojson",
       "file_name": "PAK_2024_areas.topojson",
-      "feature_count": 62,
+      "feature_count": 73,
       "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/PAK/PAK_2024_areas.topojson",
-      "updated_at": "2025-10-30T10:29:39Z"
+      "updated_at": "2025-10-30T19:26:52Z"
     },
     {
       "country": "Palestine, State of",
@@ -208,9 +230,9 @@
       "year": 2025,
       "relative_path": "data/PSE/PSE_2025_areas.topojson",
       "file_name": "PSE_2025_areas.topojson",
-      "feature_count": 5,
+      "feature_count": 10,
       "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/PSE/PSE_2025_areas.topojson",
-      "updated_at": "2025-10-30T10:29:40Z"
+      "updated_at": "2025-10-30T19:27:04Z"
     },
     {
       "country": "Sudan (the)",
@@ -219,9 +241,20 @@
       "year": 2024,
       "relative_path": "data/SDN/SDN_2024_areas.topojson",
       "file_name": "SDN_2024_areas.topojson",
-      "feature_count": 136,
+      "feature_count": 237,
       "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/SDN/SDN_2024_areas.topojson",
-      "updated_at": "2025-10-30T10:26:54Z"
+      "updated_at": "2025-10-30T19:21:09Z"
+    },
+    {
+      "country": "El Salvador",
+      "iso2": "SV",
+      "iso3": "SLV",
+      "year": 2021,
+      "relative_path": "data/SLV/SLV_2021_areas.topojson",
+      "file_name": "SLV_2021_areas.topojson",
+      "feature_count": 16,
+      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/SLV/SLV_2021_areas.topojson",
+      "updated_at": "2025-10-30T19:37:14Z"
     },
     {
       "country": "Somalia",
@@ -230,9 +263,9 @@
       "year": 2024,
       "relative_path": "data/SOM/SOM_2024_areas.topojson",
       "file_name": "SOM_2024_areas.topojson",
-      "feature_count": 18,
+      "feature_count": 227,
       "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/SOM/SOM_2024_areas.topojson",
-      "updated_at": "2025-10-30T10:25:39Z"
+      "updated_at": "2025-10-30T19:17:48Z"
     },
     {
       "country": "South Sudan",
@@ -241,9 +274,9 @@
       "year": 2025,
       "relative_path": "data/SSD/SSD_2025_areas.topojson",
       "file_name": "SSD_2025_areas.topojson",
-      "feature_count": 78,
+      "feature_count": 81,
       "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/SSD/SSD_2025_areas.topojson",
-      "updated_at": "2025-10-30T10:25:47Z"
+      "updated_at": "2025-10-30T19:18:11Z"
     },
     {
       "country": "Eswatini",
@@ -252,9 +285,9 @@
       "year": 2025,
       "relative_path": "data/SWZ/SWZ_2025_areas.topojson",
       "file_name": "SWZ_2025_areas.topojson",
-      "feature_count": 11,
+      "feature_count": 15,
       "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/SWZ/SWZ_2025_areas.topojson",
-      "updated_at": "2025-10-30T10:23:30Z"
+      "updated_at": "2025-10-30T19:12:10Z"
     },
     {
       "country": "Timor-Leste",
@@ -265,7 +298,7 @@
       "file_name": "TLS_2023_areas.topojson",
       "feature_count": 14,
       "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/TLS/TLS_2023_areas.topojson",
-      "updated_at": "2025-10-30T10:30:25Z"
+      "updated_at": "2025-10-30T19:28:25Z"
     },
     {
       "country": "Tanzania, the United Republic of",
@@ -274,9 +307,9 @@
       "year": 2025,
       "relative_path": "data/TZA/TZA_2025_areas.topojson",
       "file_name": "TZA_2025_areas.topojson",
-      "feature_count": 16,
+      "feature_count": 49,
       "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/TZA/TZA_2025_areas.topojson",
-      "updated_at": "2025-10-30T10:26:55Z"
+      "updated_at": "2025-10-30T19:21:34Z"
     },
     {
       "country": "Uganda",
@@ -285,9 +318,9 @@
       "year": 2024,
       "relative_path": "data/UGA/UGA_2024_areas.topojson",
       "file_name": "UGA_2024_areas.topojson",
-      "feature_count": 21,
+      "feature_count": 39,
       "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/UGA/UGA_2024_areas.topojson",
-      "updated_at": "2025-10-30T10:26:07Z"
+      "updated_at": "2025-10-30T19:18:51Z"
     },
     {
       "country": "Yemen",
@@ -296,9 +329,20 @@
       "year": 2025,
       "relative_path": "data/YEM/YEM_2025_areas.topojson",
       "file_name": "YEM_2025_areas.topojson",
-      "feature_count": 331,
+      "feature_count": 389,
       "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/YEM/YEM_2025_areas.topojson",
-      "updated_at": "2025-10-30T10:30:40Z"
+      "updated_at": "2025-10-30T19:29:02Z"
+    },
+    {
+      "country": "South Africa",
+      "iso2": "ZA",
+      "iso3": "ZAF",
+      "year": 2020,
+      "relative_path": "data/ZAF/ZAF_2020_areas.topojson",
+      "file_name": "ZAF_2020_areas.topojson",
+      "feature_count": 34,
+      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/ZAF/ZAF_2020_areas.topojson",
+      "updated_at": "2025-10-30T19:18:00Z"
     },
     {
       "country": "Zambia",
@@ -307,9 +351,20 @@
       "year": 2025,
       "relative_path": "data/ZMB/ZMB_2025_areas.topojson",
       "file_name": "ZMB_2025_areas.topojson",
-      "feature_count": 71,
+      "feature_count": 119,
       "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/ZMB/ZMB_2025_areas.topojson",
-      "updated_at": "2025-10-30T10:26:09Z"
+      "updated_at": "2025-10-30T19:19:23Z"
+    },
+    {
+      "country": "Zimbabwe",
+      "iso2": "ZW",
+      "iso3": "ZWE",
+      "year": 2020,
+      "relative_path": "data/ZWE/ZWE_2020_areas.topojson",
+      "file_name": "ZWE_2020_areas.topojson",
+      "feature_count": 60,
+      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/ZWE/ZWE_2020_areas.topojson",
+      "updated_at": "2025-10-30T19:19:37Z"
     }
   ]
 }
