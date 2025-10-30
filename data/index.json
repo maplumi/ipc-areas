@@ -1,6 +1,6 @@
 {
   "generated_at": "2025-10-30T10:48:34Z",
-  "cdn_release_tag": "main",
+  "cdn_release_tag": "v1.0.0",
   "total_files": 28,
   "items": [
     {
@@ -11,7 +11,7 @@
       "relative_path": "data/AFG/AFG_2025_areas.topojson",
       "file_name": "AFG_2025_areas.topojson",
       "feature_count": 34,
-      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@main/data/AFG/AFG_2025_areas.topojson",
+      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/AFG/AFG_2025_areas.topojson",
       "updated_at": "2025-10-30T10:27:03Z"
     },
     {
@@ -22,7 +22,7 @@
       "relative_path": "data/BDI/BDI_2025_areas.topojson",
       "file_name": "BDI_2025_areas.topojson",
       "feature_count": 8,
-      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@main/data/BDI/BDI_2025_areas.topojson",
+      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/BDI/BDI_2025_areas.topojson",
       "updated_at": "2025-10-30T10:22:47Z"
     },
     {
@@ -33,7 +33,7 @@
       "relative_path": "data/BGD/BGD_2025_areas.topojson",
       "file_name": "BGD_2025_areas.topojson",
       "feature_count": 6,
-      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@main/data/BGD/BGD_2025_areas.topojson",
+      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/BGD/BGD_2025_areas.topojson",
       "updated_at": "2025-10-30T10:27:25Z"
     },
     {
@@ -44,7 +44,7 @@
       "relative_path": "data/CAF/CAF_2023_areas.topojson",
       "file_name": "CAF_2023_areas.topojson",
       "feature_count": 79,
-      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@main/data/CAF/CAF_2023_areas.topojson",
+      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/CAF/CAF_2023_areas.topojson",
       "updated_at": "2025-10-30T10:26:23Z"
     },
     {
@@ -55,7 +55,7 @@
       "relative_path": "data/COD/COD_2025_areas.topojson",
       "file_name": "COD_2025_areas.topojson",
       "feature_count": 188,
-      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@main/data/COD/COD_2025_areas.topojson",
+      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/COD/COD_2025_areas.topojson",
       "updated_at": "2025-10-30T10:26:31Z"
     },
     {
@@ -66,7 +66,7 @@
       "relative_path": "data/DJI/DJI_2025_areas.topojson",
       "file_name": "DJI_2025_areas.topojson",
       "feature_count": 5,
-      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@main/data/DJI/DJI_2025_areas.topojson",
+      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/DJI/DJI_2025_areas.topojson",
       "updated_at": "2025-10-30T10:23:07Z"
     },
     {
@@ -77,7 +77,7 @@
       "relative_path": "data/DOM/DOM_2024_areas.topojson",
       "file_name": "DOM_2024_areas.topojson",
       "feature_count": 28,
-      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@main/data/DOM/DOM_2024_areas.topojson",
+      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/DOM/DOM_2024_areas.topojson",
       "updated_at": "2025-10-30T10:42:20Z"
     },
     {
@@ -88,7 +88,7 @@
       "relative_path": "data/ECU/ECU_2025_areas.topojson",
       "file_name": "ECU_2025_areas.topojson",
       "feature_count": 24,
-      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@main/data/ECU/ECU_2025_areas.topojson",
+      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/ECU/ECU_2025_areas.topojson",
       "updated_at": "2025-10-30T10:39:13Z"
     },
     {
@@ -99,7 +99,7 @@
       "relative_path": "data/GTM/GTM_2025_areas.topojson",
       "file_name": "GTM_2025_areas.topojson",
       "feature_count": 22,
-      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@main/data/GTM/GTM_2025_areas.topojson",
+      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/GTM/GTM_2025_areas.topojson",
       "updated_at": "2025-10-30T10:36:17Z"
     },
     {
@@ -110,7 +110,7 @@
       "relative_path": "data/HND/HND_2025_areas.topojson",
       "file_name": "HND_2025_areas.topojson",
       "feature_count": 18,
-      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@main/data/HND/HND_2025_areas.topojson",
+      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/HND/HND_2025_areas.topojson",
       "updated_at": "2025-10-30T10:36:20Z"
     },
     {
@@ -121,7 +121,7 @@
       "relative_path": "data/HTI/HTI_2025_areas.topojson",
       "file_name": "HTI_2025_areas.topojson",
       "feature_count": 34,
-      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@main/data/HTI/HTI_2025_areas.topojson",
+      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/HTI/HTI_2025_areas.topojson",
       "updated_at": "2025-10-30T10:36:18Z"
     },
     {
@@ -132,7 +132,7 @@
       "relative_path": "data/KEN/KEN_2025_areas.topojson",
       "file_name": "KEN_2025_areas.topojson",
       "feature_count": 23,
-      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@main/data/KEN/KEN_2025_areas.topojson",
+      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/KEN/KEN_2025_areas.topojson",
       "updated_at": "2025-10-30T10:24:04Z"
     },
     {
@@ -143,7 +143,7 @@
       "relative_path": "data/LBN/LBN_2025_areas.topojson",
       "file_name": "LBN_2025_areas.topojson",
       "feature_count": 21,
-      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@main/data/LBN/LBN_2025_areas.topojson",
+      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/LBN/LBN_2025_areas.topojson",
       "updated_at": "2025-10-30T10:28:57Z"
     },
     {
@@ -154,7 +154,7 @@
       "relative_path": "data/LSO/LSO_2025_areas.topojson",
       "file_name": "LSO_2025_areas.topojson",
       "feature_count": 10,
-      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@main/data/LSO/LSO_2025_areas.topojson",
+      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/LSO/LSO_2025_areas.topojson",
       "updated_at": "2025-10-30T10:24:05Z"
     },
     {
@@ -165,7 +165,7 @@
       "relative_path": "data/MDG/MDG_2025_areas.topojson",
       "file_name": "MDG_2025_areas.topojson",
       "feature_count": 32,
-      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@main/data/MDG/MDG_2025_areas.topojson",
+      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/MDG/MDG_2025_areas.topojson",
       "updated_at": "2025-10-30T10:24:20Z"
     },
     {
@@ -176,7 +176,7 @@
       "relative_path": "data/MOZ/MOZ_2024_areas.topojson",
       "file_name": "MOZ_2024_areas.topojson",
       "feature_count": 105,
-      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@main/data/MOZ/MOZ_2024_areas.topojson",
+      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/MOZ/MOZ_2024_areas.topojson",
       "updated_at": "2025-10-30T10:24:53Z"
     },
     {
@@ -187,7 +187,7 @@
       "relative_path": "data/MWI/MWI_2025_areas.topojson",
       "file_name": "MWI_2025_areas.topojson",
       "feature_count": 32,
-      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@main/data/MWI/MWI_2025_areas.topojson",
+      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/MWI/MWI_2025_areas.topojson",
       "updated_at": "2025-10-30T10:24:21Z"
     },
     {
@@ -198,7 +198,7 @@
       "relative_path": "data/PAK/PAK_2024_areas.topojson",
       "file_name": "PAK_2024_areas.topojson",
       "feature_count": 62,
-      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@main/data/PAK/PAK_2024_areas.topojson",
+      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/PAK/PAK_2024_areas.topojson",
       "updated_at": "2025-10-30T10:29:39Z"
     },
     {
@@ -209,7 +209,7 @@
       "relative_path": "data/PSE/PSE_2025_areas.topojson",
       "file_name": "PSE_2025_areas.topojson",
       "feature_count": 5,
-      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@main/data/PSE/PSE_2025_areas.topojson",
+      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/PSE/PSE_2025_areas.topojson",
       "updated_at": "2025-10-30T10:29:40Z"
     },
     {
@@ -220,7 +220,7 @@
       "relative_path": "data/SDN/SDN_2024_areas.topojson",
       "file_name": "SDN_2024_areas.topojson",
       "feature_count": 136,
-      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@main/data/SDN/SDN_2024_areas.topojson",
+      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/SDN/SDN_2024_areas.topojson",
       "updated_at": "2025-10-30T10:26:54Z"
     },
     {
@@ -231,7 +231,7 @@
       "relative_path": "data/SOM/SOM_2024_areas.topojson",
       "file_name": "SOM_2024_areas.topojson",
       "feature_count": 18,
-      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@main/data/SOM/SOM_2024_areas.topojson",
+      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/SOM/SOM_2024_areas.topojson",
       "updated_at": "2025-10-30T10:25:39Z"
     },
     {
@@ -242,7 +242,7 @@
       "relative_path": "data/SSD/SSD_2025_areas.topojson",
       "file_name": "SSD_2025_areas.topojson",
       "feature_count": 78,
-      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@main/data/SSD/SSD_2025_areas.topojson",
+      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/SSD/SSD_2025_areas.topojson",
       "updated_at": "2025-10-30T10:25:47Z"
     },
     {
@@ -253,7 +253,7 @@
       "relative_path": "data/SWZ/SWZ_2025_areas.topojson",
       "file_name": "SWZ_2025_areas.topojson",
       "feature_count": 11,
-      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@main/data/SWZ/SWZ_2025_areas.topojson",
+      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/SWZ/SWZ_2025_areas.topojson",
       "updated_at": "2025-10-30T10:23:30Z"
     },
     {
@@ -264,7 +264,7 @@
       "relative_path": "data/TLS/TLS_2023_areas.topojson",
       "file_name": "TLS_2023_areas.topojson",
       "feature_count": 14,
-      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@main/data/TLS/TLS_2023_areas.topojson",
+      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/TLS/TLS_2023_areas.topojson",
       "updated_at": "2025-10-30T10:30:25Z"
     },
     {
@@ -275,7 +275,7 @@
       "relative_path": "data/TZA/TZA_2025_areas.topojson",
       "file_name": "TZA_2025_areas.topojson",
       "feature_count": 16,
-      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@main/data/TZA/TZA_2025_areas.topojson",
+      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/TZA/TZA_2025_areas.topojson",
       "updated_at": "2025-10-30T10:26:55Z"
     },
     {
@@ -286,7 +286,7 @@
       "relative_path": "data/UGA/UGA_2024_areas.topojson",
       "file_name": "UGA_2024_areas.topojson",
       "feature_count": 21,
-      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@main/data/UGA/UGA_2024_areas.topojson",
+      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/UGA/UGA_2024_areas.topojson",
       "updated_at": "2025-10-30T10:26:07Z"
     },
     {
@@ -297,7 +297,7 @@
       "relative_path": "data/YEM/YEM_2025_areas.topojson",
       "file_name": "YEM_2025_areas.topojson",
       "feature_count": 331,
-      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@main/data/YEM/YEM_2025_areas.topojson",
+      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/YEM/YEM_2025_areas.topojson",
       "updated_at": "2025-10-30T10:30:40Z"
     },
     {
@@ -308,7 +308,7 @@
       "relative_path": "data/ZMB/ZMB_2025_areas.topojson",
       "file_name": "ZMB_2025_areas.topojson",
       "feature_count": 71,
-      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@main/data/ZMB/ZMB_2025_areas.topojson",
+      "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/ZMB/ZMB_2025_areas.topojson",
       "updated_at": "2025-10-30T10:26:09Z"
     }
   ]
