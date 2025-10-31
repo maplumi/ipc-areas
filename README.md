@@ -1,168 +1,46 @@
-# IPC Areas GeoJSON Download and Organization
+# IPC Areas Data Toolkit
 
-This script downloads IPC (Integrated Food Security Phase Classification) area data for countries, folds in newly published areas across multiple years, and converts the merged result to TopoJSON for efficient web serving.
+This repository produces and distributes merged IPC (Integrated Food Security Phase Classification) area boundaries. It includes automation for gathering country-level datasets from the IPC API, harmonising them, and publishing a global aggregate that is ready for use in downstream applications.
 
-## Features
+## Data Consumption
 
-- Downloads IPC area data from the official IPC API
-- Tries multiple years (2025 → 2020) to find available data
-- Merges newly discovered areas into existing datasets so historic files stay complete
-- Filters for polygon geometries only (ignoring point data)
-- Removes duplicate geometries
-- Converts GeoJSON to TopoJSON for smaller file sizes
-- Organizes data by country ISO3 codes
-- Includes comprehensive error handling and logging
+- **Country TopoJSON**: Each country lives under `data/{ISO3}/{ISO3}_{YEAR}_areas.topojson`. The `YEAR` component reflects the most recent IPC assessment that delivered data during the last run. More areas data are also sourced from older IPC assessements upto 2020. Only unique area names are retained.
+- **Global TopoJSON**: `data/ipc_global_areas.topojson` contains all areas deduplicated across countries. Coordinates are rounded to four decimal places and can be optionally simplified for lighter payloads.
+- **Index File**: `data/index.json` lists every exported country dataset including feature counts, CDN URLs (if `CDN_RELEASE_TAG` was set), and timestamps. Use this file for programmatic discovery.
+- **Coordinate Precision**: Country files preserve full precision from the API. The global file defaults to four decimal places; adjust via `scripts/simplify_ipc_global_areas.py` if you need alternative precision.
+- **Access via CDN**: When the repository is tagged, `https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@<TAG>/data/...` exposes the same hierarchy. Set `CDN_RELEASE_TAG` during generation to control the pointer the index will embed.
 
-## Prerequisites
+## Development / Extending Features
 
-1. Python 3.7 or higher
-2. IPC API key (get from IPC Info website)
+- **Environment Setup**
+   - Python 3.8+ recommended
+   - Install dependencies: `pip install -r requirements.txt`
+   - Set `IPC_KEY` via environment variables (Windows PowerShell example: `$env:IPC_KEY = "your_api_key"`)
+- **Running Scripts**
+   - Fetch/merge country datasets: `python scripts/download_ipc_areas.py`
+   - Regenerate the global aggregate: `python scripts/combine_ipc_areas.py`
+   - Re-simplify an existing global file: `python scripts/simplify_ipc_global_areas.py --help`
+- **Main Workflow (`scripts/download_ipc_areas.py`)**
+   - Reads `countries.csv`
+   - Attempts downloads from 2025 down to 2020 for each ISO2 code
+   - Merges newly discovered features with existing TopoJSON, avoiding duplication by geometry/title key
+   - Converts to TopoJSON and updates `data/index.json`
+- **Combining Data (`scripts/combine_ipc_areas.py`)**
+   - Aggregates every country file into `data/ipc_global_areas.topojson`
+   - Exposes CLI flags for precision (`--precision`) and simplification (`--simplify-tolerance`) via the shared simplification helpers
+   - Use `--skip-simplify` (alias `--skip-minify`) if you plan to post-process separately
+- **Simplification Helpers (`scripts/simplify_ipc_global_areas.py`)**
+   - Provides reusable `minify_topojson` and CLI utilities to round coordinates and optionally apply Shapely-based simplification
+   - Defaults to overwriting the input file; pass `--output` to write elsewhere
+- **Extending for New Years or Formats**
+   - Update `YEARS_TO_TRY` in `scripts/download_ipc_areas.py` if IPC releases additional assessments
+   - Modify `feature_key` logic to include other identifiers (e.g., admin codes) if available
+   - Introduce new exporters by reading from the common GeoJSON feature collections produced before the TopoJSON conversion
+- **Testing & Validation**
+   - Run the downloader and combiner scripts locally to ensure new logic respects rate limits and geometry constraints
+   - Verify `data/index.json` and `data/ipc_global_areas.topojson` diff sizes to confirm changes behave as expected
+- **Publishing**
+   - Tag releases (`git tag -a vX.Y.Z`) after regenerating data
+   - Push branch and tags (`git push origin main && git push origin vX.Y.Z`) so the CDN links stay in sync
 
-## Installation
-
-1. Clone or download this repository
-2. Install required Python packages:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-## Configuration
-
-Set your IPC API key as an environment variable:
-
-**Windows (PowerShell):**
-```powershell
-$env:IPC_KEY = "your_api_key_here"
-```
-
-**Windows (Command Prompt):**
-```cmd
-set IPC_KEY=your_api_key_here
-```
-
-**Linux/macOS:**
-```bash
-export IPC_KEY="your_api_key_here"
-```
-The script first checks the current process environment for `IPC_KEY`. On Windows it also falls back to your persisted *User Environment Variables*, so keys added through *System Properties → Environment Variables* are picked up automatically on the next run.
-
-### Optional: CDN Release Tag
-
-If you plan to host the generated files through jsDelivr, the script automatically resolves a tag using this order: `CDN_RELEASE_TAG` environment variable → current Git tag → current branch → short commit hash → `main`. Set the variable manually when you need to override what Git reports:
-
-**PowerShell**
-```powershell
-$env:CDN_RELEASE_TAG = "v1.0.0"
-```
-
-**Bash**
-```bash
-export CDN_RELEASE_TAG="v1.0.0"
-```
-
-If not provided, the script defaults to `main`.
-
-## Usage
-
-Run the script:
-```bash
-python download_ipc_areas.py
-```
-
-The script will:
-1. Read country data from `countries.csv`
-2. For each country, attempt to download IPC area data
-3. Try every year from 2025 down to 2020 and collect any available data
-4. Merge newly retrieved features with the existing TopoJSON (if present) so that new administrative areas are appended instead of overwriting the dataset
-5. Filter and process the data to retain only:
-   - Area title (name)
-   - Country ISO2 code
-   - Country ISO3 code (from CSV)
-   - Year
-   - Polygon coordinates only
-6. Convert the merged GeoJSON to TopoJSON format
-7. Save to `data/{ISO3_CODE}/{ISO3_CODE}_{LATEST_YEAR}_areas.topojson` (the most recent year that produced data during the run)
-8. Update `data/index.json` with metadata for easy file discovery
-
-## Output Structure
-
-```
-data/
-├── DZA/
-│   └── DZA_2025_areas.topojson
-├── AGO/
-│   └── AGO_2024_areas.topojson
-├── BEN/
-│   └── BEN_2023_areas.topojson
-└── ...
-```
-
-## Output Metadata (`data/index.json`)
-
-The script maintains an index file with entries such as:
-
-```json
-{
-   "generated_at": "2025-10-30T12:34:56Z",
-   "cdn_release_tag": "v1.0.0",
-   "total_files": 42,
-   "items": [
-      {
-         "country": "Uganda",
-         "iso2": "UG",
-         "iso3": "UGA",
-         "year": 2024,
-         "relative_path": "data/UGA/UGA_2024_areas.topojson",
-         "file_name": "UGA_2024_areas.topojson",
-         "feature_count": 21,
-         "cdn_url": "https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@v1.0.0/data/UGA/UGA_2024_areas.topojson",
-         "updated_at": "2025-10-30T12:34:56Z"
-      }
-   ]
-}
-```
-
-This makes it simple to discover available datasets programmatically and link directly to cached CDN locations.
-
-## Error Handling
-
-The script includes comprehensive error handling for:
-- Missing API key
-- Network timeouts
-- Invalid JSON responses
-- Missing country data
-- Geometry processing errors
-
-## Rate Limiting
-
-The script includes built-in rate limiting (1-second delays between countries, 0.5-second delays between year attempts) to be respectful of the IPC API.
-
-## File Formats
-
-- **Input**: CSV file with country data
-- **API**: JSON from IPC API
-- **Processing**: GeoJSON (in memory)
-- **Output**: TopoJSON (optimized for web serving)
-
-## API Reference
-
-The script uses the IPC Areas API:
-```
-https://api.ipcinfo.org/areas?format=geojson&country={ISO2}&year={YEAR}&type=A&key={API_KEY}
-```
-
-Parameters:
-- `format`: geojson
-- `country`: ISO2 country code
-- `year`: Year (2022-2025)
-- `type`: A (for areas)
-- `key`: Your API key
-
-## License
-
-This project is provided as-is for educational and research purposes.
-
-## Support
-
-For IPC API issues, contact the IPC Info team.
-For script issues, please check the error messages and ensure all prerequisites are met.
+For IPC API issues, contact the IPC Info team. For repository-specific questions, open an issue or consult inline logging output produced during the scripts’ execution.

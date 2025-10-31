@@ -6,6 +6,8 @@ This script downloads IPC area data for countries from the IPC API,
 converts them to TopoJSON format, and organizes them by country ISO3 codes.
 """
 
+from __future__ import annotations
+
 import copy
 import hashlib
 import os
@@ -19,6 +21,10 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 import topojson as tp
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
+DATA_DIR = REPO_ROOT / "data"
+COUNTRIES_CSV = REPO_ROOT / "countries.csv"
 
 # Configuration
 API_BASE_URL = "https://api.ipcinfo.org/areas"
@@ -48,7 +54,7 @@ def resolve_release_tag() -> str:
 
     for cmd in git_cmds:
         try:
-            result = subprocess.check_output(cmd, stderr=subprocess.DEVNULL, cwd=Path(__file__).parent)
+            result = subprocess.check_output(cmd, stderr=subprocess.DEVNULL, cwd=REPO_ROOT)
             tag = result.decode().strip()
             if tag and tag != "HEAD":
                 return tag
@@ -93,9 +99,9 @@ class IPCAreaDownloader:
         self.session.headers.update({
             'User-Agent': 'IPC-Areas-Downloader/1.0'
         })
-        
+
         # Create data directory
-        self.data_dir = Path("data")
+        self.data_dir = DATA_DIR
         self.data_dir.mkdir(exist_ok=True)
         self.index_entries: List[Dict[str, Any]] = []
         self.cdn_release_tag = CDN_RELEASE_TAG
@@ -128,7 +134,7 @@ class IPCAreaDownloader:
         countries = {}
         
         try:
-            with open('countries.csv', 'r', encoding='utf-8-sig', newline='') as file:
+            with open(COUNTRIES_CSV, 'r', encoding='utf-8-sig', newline='') as file:
                 reader = csv.DictReader(file)
                 if reader.fieldnames:
                     reader.fieldnames = [field.strip() for field in reader.fieldnames]
@@ -342,7 +348,10 @@ class IPCAreaDownloader:
         updated_at: Optional[str] = None
     ) -> None:
         """Add an entry to the index for future discovery."""
-        relative_path = filepath.as_posix()
+        try:
+            relative_path = filepath.relative_to(REPO_ROOT).as_posix()
+        except ValueError:
+            relative_path = filepath.as_posix()
         file_name = filepath.name
         cdn_url = (
             f"https://cdn.jsdelivr.net/gh/maplumi/ipc-areas@{self.cdn_release_tag}/"

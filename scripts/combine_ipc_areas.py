@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
-"""Combine all IPC area TopoJSON datasets into a single global TopoJSON file.
+"""Combine all IPC area TopoJSON datasets into a single, simplified global file.
 
 This utility walks the ``data`` directory, converts each country-level TopoJSON to
 GeoJSON features, deduplicates them by ISO3 + title (falling back to geometry hash),
-and writes a merged TopoJSON collection to ``data/ipc_global_areas.topojson``.
+stores an aggregated TopoJSON file, and optionally simplifies the result using shared
+geometry utilities (rounding coordinates and simplifying shapes).
 """
 
+from __future__ import annotations
+
+import argparse
 import hashlib
 import json
 import sys
@@ -19,9 +23,14 @@ except ImportError as exc:  # pragma: no cover - immediate exit path
         "Missing dependency: install requirements with 'pip install -r requirements.txt'."
     ) from exc
 
-DATA_DIR = Path("data")
-OUTPUT_FILENAME = "ipc_global_areas.topojson"
-GLOBAL_PATH = DATA_DIR / OUTPUT_FILENAME
+try:
+    from .simplify_ipc_global_areas import simplify_topojson
+except ImportError:  # pragma: no cover - fallback for direct script execution
+    from simplify_ipc_global_areas import simplify_topojson
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
+DATA_DIR = REPO_ROOT / "data"
+DEFAULT_OUTPUT_FILENAME = "ipc_global_areas.topojson"
 
 
 def normalize_title(title: Optional[str]) -> str:
@@ -86,21 +95,22 @@ def collect_all_features(files: Iterable[Path]) -> List[Dict[str, Any]]:
     return [item[1] for item in sorted_items]
 
 
-def discover_topojson_files() -> List[Path]:
-    """Return all TopoJSON files under data/, excluding the global output itself."""
+def discover_topojson_files(skip_path: Path) -> List[Path]:
+    """Return all TopoJSON files under data/, excluding the target output file."""
     if not DATA_DIR.exists():
-        raise FileNotFoundError("data directory not found; run download_ipc_areas.py first")
+        raise FileNotFoundError("data directory not found; run scripts/download_ipc_areas.py first")
 
+    skip_resolved = skip_path.resolve()
     files: List[Path] = []
     for path in DATA_DIR.rglob("*.topojson"):
-        if path.name == OUTPUT_FILENAME:
+        if path.resolve() == skip_resolved:
             continue
         if path.is_file():
             files.append(path)
     return sorted(files)
 
 
-def save_topology(features: List[Dict[str, Any]]) -> None:
+def save_topology(features: List[Dict[str, Any]], output_path: Path) -> None:
     """Persist the combined features back to TopoJSON."""
     collection = {
         "type": "FeatureCollection",
@@ -109,16 +119,57 @@ def save_topology(features: List[Dict[str, Any]]) -> None:
 
     topology = tp.Topology(collection, prequantize=False)
 
-    DATA_DIR.mkdir(exist_ok=True)
-    with open(GLOBAL_PATH, "w", encoding="utf-8") as handle:
+    output_path.parent.mkdir(exist_ok=True, parents=True)
+    with open(output_path, "w", encoding="utf-8") as handle:
         json.dump(topology.to_dict(), handle, separators=(",", ":"))
 
-    print(f"Wrote {len(features)} features to {GLOBAL_PATH}")
-
-
-def main() -> int:
     try:
-        topo_files = discover_topojson_files()
+        display_path = output_path.relative_to(REPO_ROOT)
+    except ValueError:
+        display_path = output_path
+
+    print(f"Wrote {len(features)} features to {display_path}")
+
+
+def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--output",
+        type=Path,
+        default=None,
+        help="Path for the aggregated TopoJSON output (default: data/ipc_global_areas.topojson)",
+    )
+    parser.add_argument(
+        "--precision",
+        type=int,
+        default=4,
+        help="Decimal precision for coordinate rounding during minification (default: 4)",
+    )
+    parser.add_argument(
+        "--simplify-tolerance",
+        type=float,
+        default=0.0,
+        help="Simplification tolerance applied after combination; set to 0 to disable",
+    )
+    parser.add_argument(
+        "--skip-simplify",
+        "--skip-minify",
+        dest="skip_simplify",
+        action="store_true",
+        help="Skip the simplification pass if you plan to process the output separately",
+    )
+    return parser.parse_args(argv)
+
+
+def main(argv: Optional[List[str]] = None) -> int:
+    args = parse_args(argv)
+
+    output_path = args.output or (DATA_DIR / DEFAULT_OUTPUT_FILENAME)
+    if not output_path.is_absolute():
+        output_path = (REPO_ROOT / output_path).resolve()
+
+    try:
+        topo_files = discover_topojson_files(output_path)
     except FileNotFoundError as exc:
         print(str(exc), file=sys.stderr)
         return 1
@@ -132,7 +183,22 @@ def main() -> int:
         print("No features extracted; aborting.", file=sys.stderr)
         return 1
 
-    save_topology(features)
+    save_topology(features, output_path)
+
+    if not args.skip_simplify:
+        stats = simplify_topojson(
+            output_path,
+            precision=args.precision,
+            simplify_tolerance=args.simplify_tolerance,
+            quiet=True,
+        )
+        ratio = stats.get("size_ratio", 0.0)
+        saved = stats.get("saved_bytes", 0)
+        print(
+            f"Simplified global dataset with precision {args.precision} and tolerance "
+            f"{args.simplify_tolerance}; saved {saved:,} bytes ({ratio:.2%} of original)."
+        )
+
     return 0
 
 
