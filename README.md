@@ -22,8 +22,8 @@ This repository produces and distributes merged IPC (Integrated Food Security Ph
    - Re-simplify an existing global file: `python scripts/simplify_ipc_global_areas.py --help`
 - **Main Workflow (`scripts/download_ipc_areas.py`)**
    - Reads `countries.csv`
-   - Attempts downloads from 2025 down to 2020 for each ISO2 code
-   - Merges newly discovered features with existing TopoJSON, avoiding duplication by geometry/title key
+   - Attempts downloads for the assessment years supplied via `--years` (defaults to the current calendar year when omitted)
+   - Merges newly discovered features with existing TopoJSON, preferring the IPC-provided `id` for deduplication
    - Converts to TopoJSON and updates `data/index.json`
 - **Combining Data (`scripts/combine_ipc_areas.py`)**
    - Aggregates every country file into `data/ipc_global_areas.topojson`
@@ -42,5 +42,9 @@ This repository produces and distributes merged IPC (Integrated Food Security Ph
 - **Publishing**
    - Tag releases (`git tag -a vX.Y.Z`) after regenerating data
    - Push branch and tags (`git push origin main && git push origin vX.Y.Z`) so the CDN links stay in sync
+- **Automation**
+   - A scheduled workflow (`.github/workflows/refresh-ipc-areas.yml`) runs every Monday at 06:00 UTC and on manual dispatch
+   - Set `IPC_KEY` as a repository secret so the downloader can authenticate; optionally provide a PAT if your org restricts the default token
+   - The workflow downloads country datasets (current year by default, full history when dispatched with `full_refresh=true`), recombines the global file, and opens a pull request with the changes
 
 For IPC API issues, contact the IPC Info team. For repository-specific questions, open an issue or consult inline logging output produced during the scripts’ execution.
