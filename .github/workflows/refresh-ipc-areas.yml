@@ -50,9 +50,6 @@ jobs:
           IPC_KEY: ${{ secrets.IPC_KEY }}
         run: python scripts/download_ipc_areas.py ${{ steps.years.outputs.args }}
 
-      - name: Combine global dataset
-        run: python scripts/combine_ipc_areas.py
-
       - name: Create pull request
         uses: peter-evans/create-pull-request@v6
         with:
@@ -63,4 +60,4 @@ jobs:
           body: |
             Automated data refresh triggered by `${{ github.event_name }}`.
             - Years argument: `${{ steps.years.outputs.args }}`
-            - Combines and simplifies global dataset after downloads.
+            - Downloader stores per-year datasets, combined country files, and a refreshed `data/global_areas.topojson`.

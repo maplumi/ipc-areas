@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Combine all IPC area TopoJSON datasets into a single, simplified global file.
+"""Combine IPC area TopoJSON datasets into a single, simplified global file.
 
-This utility walks the ``data`` directory, converts each country-level TopoJSON to
-GeoJSON features, deduplicates them by ISO3 + title (falling back to geometry hash),
-stores an aggregated TopoJSON file, and optionally simplifies the result using shared
-geometry utilities (rounding coordinates and simplifying shapes).
+By default this utility reads the per-country combined outputs produced by the
+downloader (``*_combined_areas.topojson``), converts them to GeoJSON features,
+deduplicates by IPC id (falling back to geometry hash), stores an aggregated
+TopoJSON file, and optionally simplifies the result using shared geometry helpers.
 """
 
 from __future__ import annotations
@@ -30,7 +30,8 @@ except ImportError:  # pragma: no cover - fallback for direct script execution
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = REPO_ROOT / "data"
-DEFAULT_OUTPUT_FILENAME = "ipc_global_areas.topojson"
+DEFAULT_OUTPUT_FILENAME = "global_areas.topojson"
+COMBINED_SUFFIX = "_combined_areas.topojson"
 
 
 def normalize_title(title: Optional[str]) -> str:
@@ -44,6 +45,10 @@ def feature_key(feature: Dict[str, Any]) -> str:
     """Derive a stable deduplication key for a feature."""
     props = feature.get("properties") or {}
     iso3 = (props.get("iso3") or "").strip().lower()
+    identifier = props.get("id")
+    if identifier is not None:
+        return f"id::{iso3}::{str(identifier).strip()}"
+
     title = normalize_title(props.get("title"))
     if iso3 and title:
         return f"{iso3}::{title}"
@@ -95,8 +100,8 @@ def collect_all_features(files: Iterable[Path]) -> List[Dict[str, Any]]:
     return [item[1] for item in sorted_items]
 
 
-def discover_topojson_files(skip_path: Path) -> List[Path]:
-    """Return all TopoJSON files under data/, excluding the target output file."""
+def discover_topojson_files(skip_path: Path, *, include_per_year: bool) -> List[Path]:
+    """Return TopoJSON files under data/, excluding the target output file."""
     if not DATA_DIR.exists():
         raise FileNotFoundError("data directory not found; run scripts/download_ipc_areas.py first")
 
@@ -105,8 +110,13 @@ def discover_topojson_files(skip_path: Path) -> List[Path]:
     for path in DATA_DIR.rglob("*.topojson"):
         if path.resolve() == skip_resolved:
             continue
-        if path.is_file():
-            files.append(path)
+        if not path.is_file():
+            continue
+
+        if not include_per_year and not path.name.endswith(COMBINED_SUFFIX):
+            continue
+
+        files.append(path)
     return sorted(files)
 
 
@@ -137,7 +147,7 @@ def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
         "--output",
         type=Path,
         default=None,
-        help="Path for the aggregated TopoJSON output (default: data/ipc_global_areas.topojson)",
+        help="Path for the aggregated TopoJSON output (default: data/global_areas.topojson)",
     )
     parser.add_argument(
         "--precision",
@@ -158,6 +168,11 @@ def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
         action="store_true",
         help="Skip the simplification pass if you plan to process the output separately",
     )
+    parser.add_argument(
+        "--include-per-year",
+        action="store_true",
+        help="Include per-year files (ISO3_YYYY_areas.topojson) in addition to combined outputs",
+    )
     return parser.parse_args(argv)
 
 
@@ -169,7 +184,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         output_path = (REPO_ROOT / output_path).resolve()
 
     try:
-        topo_files = discover_topojson_files(output_path)
+        topo_files = discover_topojson_files(output_path, include_per_year=args.include_per_year)
     except FileNotFoundError as exc:
         print(str(exc), file=sys.stderr)
         return 1
