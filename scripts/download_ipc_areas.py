@@ -8,6 +8,7 @@ converts them to TopoJSON format, and organizes them by country ISO3 codes.
 
 from __future__ import annotations
 
+import argparse
 import copy
 import hashlib
 import os
@@ -25,10 +26,31 @@ import topojson as tp
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = REPO_ROOT / "data"
 COUNTRIES_CSV = REPO_ROOT / "countries.csv"
+COUNTRY_FILENAME_SUFFIX = "_areas.topojson"
 
 # Configuration
 API_BASE_URL = "https://api.ipcinfo.org/areas"
 YEARS_TO_TRY = list(range(2025, 2019, -1))
+
+
+def normalize_years(years: Optional[List[int]]) -> List[int]:
+    """Return a sanitized list of assessment years, preserving order."""
+    if years is None or not years:
+        return list(YEARS_TO_TRY)
+
+    seen = set()
+    normalized: List[int] = []
+    for year in years:
+        value = int(year)
+        if value in seen:
+            continue
+        normalized.append(value)
+        seen.add(value)
+
+    if not normalized:
+        raise ValueError("At least one valid assessment year must be provided")
+
+    return normalized
 
 
 def resolve_release_tag() -> str:
@@ -90,7 +112,7 @@ def resolve_ipc_key() -> Optional[str]:
     return None
 
 class IPCAreaDownloader:
-    def __init__(self):
+    def __init__(self, years_to_try: Optional[List[int]] = None):
         self.ipc_key = resolve_ipc_key()
         if not self.ipc_key:
             raise ValueError("IPC_KEY environment variable is required")
@@ -105,6 +127,10 @@ class IPCAreaDownloader:
         self.data_dir.mkdir(exist_ok=True)
         self.index_entries: List[Dict[str, Any]] = []
         self.cdn_release_tag = CDN_RELEASE_TAG
+        self.years_to_try = normalize_years(years_to_try)
+
+        if not self.years_to_try:
+            raise ValueError("At least one assessment year must be configured")
 
     @staticmethod
     def normalize_title(title: Optional[str]) -> str:
@@ -115,6 +141,11 @@ class IPCAreaDownloader:
     @staticmethod
     def feature_key(feature: Dict[str, Any]) -> str:
         props = feature.get('properties') or {}
+        area_id = props.get('id')
+        if area_id is not None:
+            iso3 = (props.get('iso3') or '').strip().lower()
+            return f"id::{iso3}::{str(area_id).strip().lower()}"
+
         title_key = IPCAreaDownloader.normalize_title(props.get('title'))
         if title_key:
             return f"title::{title_key}"
@@ -176,6 +207,27 @@ class IPCAreaDownloader:
         except Exception as exc:
             print(f"    Warning: unable to read existing dataset {filepath}: {exc}")
             return []
+
+    def ensure_country_file_path(self, iso3: str) -> Path:
+        country_dir = self.data_dir / iso3
+        country_dir.mkdir(exist_ok=True)
+        target = country_dir / f"{iso3}{COUNTRY_FILENAME_SUFFIX}"
+
+        if target.exists():
+            return target
+
+        legacy_pattern = f"{iso3}_*_areas.topojson"
+        for legacy in sorted(country_dir.glob(legacy_pattern), reverse=True):
+            if legacy == target:
+                continue
+            try:
+                legacy.rename(target)
+                print(f"    Renamed {legacy.name} -> {target.name}")
+                break
+            except OSError as exc:
+                print(f"    Warning: unable to rename {legacy} -> {target.name}: {exc}")
+
+        return target
 
     def merge_features(self,
                        aggregate: Dict[str, Dict[str, Any]],
@@ -290,6 +342,9 @@ class IPCAreaDownloader:
                     'iso3': country_info['iso3'],
                     'year': source_props.get('year') or year
                 }
+
+                if source_props.get('id') is not None:
+                    properties['id'] = source_props['id']
                 
                 features.append({
                     'type': 'Feature',
@@ -321,18 +376,18 @@ class IPCAreaDownloader:
             print(f"    Error converting to TopoJSON: {e}")
             return None
     
-    def save_topojson(self, topojson_data: Dict[str, Any], country_iso3: str, year: int) -> Optional[Path]:
-        """Save TopoJSON data to file."""
+    def save_topojson(self, topojson_data: Dict[str, Any], country_iso3: str) -> Optional[Path]:
+        """Save TopoJSON data to file using the consolidated naming scheme."""
         country_dir = self.data_dir / country_iso3
         country_dir.mkdir(exist_ok=True)
-        
-        filename = f"{country_iso3}_{year}_areas.topojson"
+
+        filename = f"{country_iso3}{COUNTRY_FILENAME_SUFFIX}"
         filepath = country_dir / filename
-        
+
         try:
             with open(filepath, 'w', encoding='utf-8') as f:
                 json.dump(topojson_data, f, separators=(',', ':'))
-            
+
             print(f"    Saved: {filepath}")
             return filepath
         except Exception as e:
@@ -402,27 +457,26 @@ class IPCAreaDownloader:
         print(f"\nProcessing {country_info['name']} ({country_code})...")
 
         aggregated: Dict[str, Dict[str, Any]] = {}
-        fallback_year: Optional[int] = None
         download_year: Optional[int] = None
 
-        for year in YEARS_TO_TRY:
-            expected_path = self.data_dir / country_info['iso3'] / f"{country_info['iso3']}_{year}_areas.topojson"
+        country_path = self.ensure_country_file_path(country_info['iso3'])
 
-            if expected_path.exists():
-                if fallback_year is None:
-                    fallback_year = year
-                existing_features = self.load_existing_features(expected_path)
-                if existing_features:
-                    stats = self.merge_features(
-                        aggregated,
-                        existing_features,
-                        priority=0,
-                        source_year=year,
-                        source_label=f"existing:{year}"
+        if country_path.exists():
+            existing_features = self.load_existing_features(country_path)
+            if existing_features:
+                stats = self.merge_features(
+                    aggregated,
+                    existing_features,
+                    priority=0,
+                    source_year=None,
+                    source_label="existing"
+                )
+                if stats["added"] or stats["updated"]:
+                    print(
+                        "    Existing dataset contributed "
+                        f"{stats['added']} new and {stats['updated']} updated features"
                     )
-                    if stats["added"] or stats["updated"]:
-                        print(f"    Existing {year} dataset contributed {stats['added']} new and {stats['updated']} updated features")
-
+        for year in self.years_to_try:
             areas_data = self.download_areas(country_code, year)
 
             if areas_data:
@@ -451,7 +505,15 @@ class IPCAreaDownloader:
             print(f"    No data found for {country_info['name']} in any year")
             return False
 
-        target_year = download_year if download_year is not None else fallback_year
+        target_year = download_year if download_year is not None else None
+        if target_year is None:
+            years_seen = [
+                entry.get('source_year')
+                for entry in aggregated.values()
+                if entry.get('source_year') is not None
+            ]
+            if years_seen:
+                target_year = max(years_seen)
         if target_year is None:
             print(f"    Unable to determine target year for {country_info['name']}")
             return False
@@ -468,7 +530,7 @@ class IPCAreaDownloader:
             print(f"    Failed to convert merged features to TopoJSON for {country_info['name']}")
             return False
 
-        saved_path = self.save_topojson(topojson_data, country_info['iso3'], target_year)
+        saved_path = self.save_topojson(topojson_data, country_info['iso3'])
         if not saved_path:
             print(f"    Failed to save merged dataset for {country_info['name']}")
             return False
@@ -509,6 +571,10 @@ class IPCAreaDownloader:
         print("Loading countries data...")
         countries = self.load_countries()
         print(f"Loaded {len(countries)} countries")
+        print(
+            "Assessment years: "
+            + ", ".join(str(year) for year in self.years_to_try)
+        )
         
         # Process each country
         successful = 0
@@ -535,13 +601,32 @@ class IPCAreaDownloader:
         print(f"Failed: {failed}")
         print(f"Data saved in: {self.data_dir.absolute()}")
 
-if __name__ == "__main__":
+def parse_cli_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Download and consolidate IPC area datasets")
+    parser.add_argument(
+        "--years",
+        type=int,
+        nargs="+",
+        help="Override the list of assessment years to attempt (e.g. --years 2025 2024)",
+    )
+    return parser.parse_args(argv)
+
+
+def main(argv: Optional[List[str]] = None) -> int:
+    args = parse_cli_args(argv)
+
     try:
-        downloader = IPCAreaDownloader()
+        downloader = IPCAreaDownloader(years_to_try=args.years)
         downloader.run()
     except KeyboardInterrupt:
         print("\nScript interrupted by user")
-        sys.exit(1)
-    except Exception as e:
-        print(f"Script failed: {e}")
-        sys.exit(1)
+        return 1
+    except Exception as exc:
+        print(f"Script failed: {exc}")
+        return 1
+
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

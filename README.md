@@ -4,7 +4,7 @@ This repository produces and distributes merged IPC (Integrated Food Security Ph
 
 ## Data Consumption
 
-- **Country TopoJSON**: Each country lives under `data/{ISO3}/{ISO3}_{YEAR}_areas.topojson`. The `YEAR` component reflects the most recent IPC assessment that delivered data during the last run. More areas data are also sourced from older IPC assessements upto 2020. Only unique area names are retained.
+- **Country TopoJSON**: Each country lives under `data/{ISO3}/{ISO3}_areas.topojson`. The dataset aggregates all unique area records (by IPC id) discovered across the configured assessment years, so feature properties retain their original `year` values even though the filename no longer encodes a single year.
 - **Global TopoJSON**: `data/ipc_global_areas.topojson` contains all areas deduplicated across countries. Coordinates are rounded to four decimal places and can be optionally simplified for lighter payloads.
 - **Index File**: `data/index.json` lists every exported country dataset including feature counts, CDN URLs (if `CDN_RELEASE_TAG` was set), and timestamps. Use this file for programmatic discovery.
 - **Coordinate Precision**: Country files preserve full precision from the API. The global file defaults to four decimal places; adjust via `scripts/simplify_ipc_global_areas.py` if you need alternative precision.
